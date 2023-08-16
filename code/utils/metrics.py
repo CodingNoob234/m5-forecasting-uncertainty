@@ -21,7 +21,7 @@ AGG_LEVEL_COLUMNS = {
     "Level11": ['state_id', 'item_id'],
     "Level12": ['item_id','store_id'],
 }
-QUANTILES = (0.01, 0.025, 0.125, 0.25, 0.5, 0.75, 0.875, 0.975, 0.99)
+QUANTILES = (0.01, 0.025, 0.175, 0.25, 0.5, 0.75, 0.835, 0.975, 0.99)
 QUANTILE_COLUMNS = [
     'pred_{q}' for q in QUANTILES
 ]
