@@ -302,3 +302,16 @@ def ensemble_submissions_uncertainty(files: list):
     concat_df['id'] = concat_df['agg_column1'] + '_' + concat_df['agg_column2'] + '.' + concat_df['quantile'].astype(str) + '_' + concat_df['type_of']
     df_pred_avg = concat_df.groupby(['id', 'd'])['pred'].mean().reset_index()
     return df_pred_avg
+
+def parse_columns_to_string(c: list):
+    """ 
+    Concatenate columns to string
+    """
+    n = len(c)
+    if n == 0:
+        return 'Total_X'
+    elif c[0] == 'temp_id': 
+        return 'Total_X'
+    elif n == 1:
+        return f'{c[0]}_X'
+    return '_'.join(c)

@@ -21,7 +21,7 @@ AGG_LEVEL_COLUMNS = {
     "Level11": ['state_id', 'item_id'],
     "Level12": ['item_id','store_id'],
 }
-QUANTILES = (0.01, 0.025, 0.165, 0.25, 0.5, 0.75, 0.835, 0.975, 0.99)
+QUANTILES = (0.005, 0.025, 0.165, 0.25, 0.5, 0.75, 0.835, 0.975, 0.995)
 QUANTILE_COLUMN = 'quantile'
 
 from sklearn.metrics import mean_pinball_loss
@@ -39,7 +39,7 @@ def WSPL(df: pd.DataFrame, D_PRED: list = None):
     
     # select prediction and historic indices
     if D_PRED == None:
-        D_PRED = [f"d_{i}" for i in range(1914, 1914 + 28)]
+        D_PRED = [f"d_{i}" for i in range(1914, 1914 + 200)]#28)]
 
     # aggregate specific level and make sure it is sorted well
     logger.info('sorting df on d ...')
@@ -53,11 +53,11 @@ def WSPL(df: pd.DataFrame, D_PRED: list = None):
 
         # select historic dataframe for denominator calculation and prediction df
         pred_index: pd.Index = df_agg['d'].isin(D_PRED)
-        df_hist = df_agg.drop(pred_index, errors = "ignore")
-        df_pred = df_agg[pred_index]
+        df_hist = df_agg[~pred_index].reset_index(drop=True)
+        df_pred = df_agg[pred_index].reset_index(drop=True)
         
-        print(df_hist)
-        print(df_pred)
+        # print(df_hist)
+        # print(df_pred)
 
         # rmsse list
         if agg_level == "Level1":
@@ -84,8 +84,8 @@ def WSPL(df: pd.DataFrame, D_PRED: list = None):
                 ]
                 for (id, df_p), (id, df_h) in 
                 zip(
-                    df_pred.groupby(AGG_LEVEL_COLUMNS[agg_level]), 
-                    df_hist.groupby(AGG_LEVEL_COLUMNS[agg_level])
+                    df_pred.groupby(['agg_column1', 'agg_column2']), 
+                    df_hist.groupby(['agg_column1', 'agg_column2'])
                 )
             ]
         
@@ -113,11 +113,11 @@ def WSPL(df: pd.DataFrame, D_PRED: list = None):
 
     return np.mean(level_wrmsse_list)
 
-def SPL(df_pred, df_true, df_true_hist: pd.Series):
+def SPL(df_pred, df_true, df_true_hist: pd.DataFrame):
     # scale to divide pinball loss with
-    scale = df_true_hist[df_true_hist['quantile'] == 0.005]['sold'].diff().abs().mean(skipna=True)
-
-    # for each quantile, compute 
+    scale = df_true_hist['sold'].diff().abs().mean(skipna=True) + 1e-2
+    # logger.info('scale: ' + str(scale))
+    # for each quantile, compute
     all_quantiles = [
         mean_pinball_loss(
             df_true[df_true['quantile'] == 0.005]['sold'], 
