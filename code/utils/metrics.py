@@ -50,72 +50,75 @@ def WSPL(df: pd.DataFrame, D_PRED: list = None):
     logger.info('entering loop ...')
     level_wrmsse_list: list = []
     for agg_level, df_agg in df.groupby('Level'):
+        try:
+            # select historic dataframe for denominator calculation and prediction df
+            pred_index: pd.Index = df_agg['d'].isin(D_PRED)
+            df_hist = df_agg[~pred_index].reset_index(drop=True)
+            df_pred = df_agg[pred_index].reset_index(drop=True)
+            
+            # print(df_hist)
+            # print(df_pred)
 
-        # select historic dataframe for denominator calculation and prediction df
-        pred_index: pd.Index = df_agg['d'].isin(D_PRED)
-        df_hist = df_agg[~pred_index].reset_index(drop=True)
-        df_pred = df_agg[pred_index].reset_index(drop=True)
-        
-        # print(df_hist)
-        # print(df_pred)
-
-        # rmsse list
-        if agg_level == "Level1":
-            rmsse_list = [
-                (
-                    'Total', 'X',
-                    SPL(
-                        df_pred[['pred', 'quantile']], 
-                        df_pred[['sold', 'quantile']],
-                        df_hist[['sold', 'quantile']],
+            # rmsse list
+            if agg_level == "Level1":
+                rmsse_list = [
+                    (
+                        'Total', 'X',
+                        SPL(
+                            df_pred[['pred', 'quantile']], 
+                            df_pred[['sold', 'quantile']],
+                            df_hist[['sold', 'quantile']],
+                        )
                     )
-                )
-            ]        
-        else:
-            rmsse_list = [
-                (
-                    list(id) if len(id) == 2 else [id[0], 'X']
-                ) + [ 
-                    SPL(
-                        df_p[['pred', 'quantile']], 
-                        df_p[['sold', 'quantile']],
-                        df_h[['sold', 'quantile']],
+                ]        
+            else:
+                rmsse_list = [
+                    (
+                        list(id) if len(id) == 2 else [id[0], 'X']
+                    ) + [ 
+                        SPL(
+                            df_p[['pred', 'quantile']], 
+                            df_p[['sold', 'quantile']],
+                            df_h[['sold', 'quantile']],
+                        )
+                    ]
+                    for (id, df_p), (id, df_h) in 
+                    zip(
+                        df_pred.groupby(['agg_column1', 'agg_column2']), 
+                        df_hist.groupby(['agg_column1', 'agg_column2'])
                     )
                 ]
-                for (id, df_p), (id, df_h) in 
-                zip(
-                    df_pred.groupby(['agg_column1', 'agg_column2']), 
-                    df_hist.groupby(['agg_column1', 'agg_column2'])
-                )
-            ]
-        
-        # results to dataframe    
-        df_rmsse = pd.DataFrame(rmsse_list, columns=['agg_column1', 'agg_column2', 'MSPL'])
             
-        # print temp results
-        # logger.info(f'level: {agg_level} - RMSSE list: ' + str(rmsse_list))
+            # results to dataframe    
+            df_rmsse = pd.DataFrame(rmsse_list, columns=['agg_column1', 'agg_column2', 'MSPL'])
                 
-        # compute weighted average for rmsse
-        level_weights = weights[weights['Level_id'] == agg_level]
+            # print temp results
+            # logger.info(f'level: {agg_level} - RMSSE list: ' + str(rmsse_list))
+                    
+            # compute weighted average for rmsse
+            level_weights = weights[weights['Level_id'] == agg_level]
+            
+            # align weights with rmsse results
+            df_rmsse = pd.merge(
+                df_rmsse,
+                level_weights,
+                on = ['agg_column1', 'agg_column2'],
+                how = 'left'
+            )
+            
+            # compute WRMSSE
+            level_wrmsse = np.dot(df_rmsse['MSPL'], df_rmsse['Weight'])
+            logger.info(f"{agg_level} - {level_wrmsse}")
+            level_wrmsse_list.append(level_wrmsse)
         
-        # align weights with rmsse results
-        df_rmsse = pd.merge(
-            df_rmsse,
-            level_weights,
-            on = ['agg_column1', 'agg_column2'],
-            how = 'left'
-        )
-        
-        # compute WRMSSE
-        level_wrmsse = np.dot(df_rmsse['MSPL'], df_rmsse['Weight'])
-        logger.info(f"{agg_level} - {level_wrmsse}")
-        level_wrmsse_list.append(level_wrmsse)
+        except Exception as e:
+            logger.error(e)
 
     return np.mean(level_wrmsse_list)
 
 def SPL(df_pred, df_true, df_true_hist: pd.DataFrame):
     # scale to divide pinball loss with
-    scale = df_true_hist['sold'].diff().abs().mean(skipna=True) + 1e-2
+    scale = df_true_hist['sold'].diff().abs().mean(skipna=True) + 1e-3
     # logger.info('scale: ' + str(scale))
     # for each quantile, compute
     all_quantiles = [
