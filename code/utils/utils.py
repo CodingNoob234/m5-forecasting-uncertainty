@@ -315,3 +315,12 @@ def parse_columns_to_string(c: list):
     elif n == 1:
         return f'{c[0]}_X'
     return '_'.join(c)
+
+def prefixes_in_column(column, prefixes):
+    s = 0
+    for prefix in prefixes:
+        s += prefix_in_column(column, prefix)
+    return True if s>0 else False
+
+def prefix_in_column(column, prefix):
+    return 1 if prefix in column else 0
