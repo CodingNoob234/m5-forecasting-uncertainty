@@ -304,7 +304,7 @@ def ensemble_submissions_uncertainty(files: list):
     return df_pred_avg
 
 def parse_columns_to_string(c: list):
-    """ 
+    """
     Concatenate columns to string
     """
     n = len(c)
@@ -317,9 +317,10 @@ def parse_columns_to_string(c: list):
     return '_'.join(c)
 
 def prefixes_in_column(column, prefixes):
-    s = 0
-    for prefix in prefixes:
-        s += prefix_in_column(column, prefix)
+    # s = 0
+    # for prefix in prefixes:
+    #     s += prefix_in_column(column, prefix)
+    s = sum([prefix_in_column(column, prefix) for prefix in prefixes])
     return True if s>0 else False
 
 def prefix_in_column(column, prefix):
