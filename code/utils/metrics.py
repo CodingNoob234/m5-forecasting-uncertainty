@@ -49,6 +49,7 @@ def WSPL(df: pd.DataFrame, D_PRED: list = None):
     # enter loop
     logger.info('entering loop ...')
     level_wrmsse_list: list = []
+    level_wrmsse_dict: dict = {}
     for agg_level, df_agg in df.groupby('Level'):
         try:
             # select historic dataframe for denominator calculation and prediction df
@@ -110,11 +111,12 @@ def WSPL(df: pd.DataFrame, D_PRED: list = None):
             level_wrmsse = np.dot(df_rmsse['MSPL'], df_rmsse['Weight'])
             logger.info(f"{agg_level} - {level_wrmsse}")
             level_wrmsse_list.append(level_wrmsse)
+            level_wrmsse_dict[agg_level] = level_wrmsse
         
         except Exception as e:
             logger.error(e)
 
-    return np.mean(level_wrmsse_list)
+    return np.mean(level_wrmsse_list), level_wrmsse_dict
 
 def SPL(df_pred, df_true, df_true_hist: pd.DataFrame):
     # scale to divide pinball loss with
@@ -129,4 +131,5 @@ def SPL(df_pred, df_true, df_true_hist: pd.DataFrame):
         )
         for q in QUANTILES
     ]
-    return np.mean(all_quantiles) / scale
+    # all_quantiles_dict = dict(zip(QUANTILES, all_quantiles))
+    return np.mean(all_quantiles) / scale #, all_quantiles_dict

@@ -324,3 +324,16 @@ def prefixes_in_column(column, prefixes):
 
 def prefix_in_column(column, prefix):
     return 1 if prefix in column else 0
+
+def store_results_as_json(results, file_path):
+    # Save the dictionary as a JSON file
+    import json
+    with open(file_path, 'w') as json_file:
+        json.dump(results, json_file) 
+        
+def load_results_as_json(file_path):
+    # Save the dictionary as a JSON file
+    import json
+    with open(file_path, 'r') as json_file:
+        json_loaded = json.load(json_file) 
+    return json_loaded
