@@ -265,13 +265,17 @@ def cross_validation_on_validation_set(
     logger.info(f'wrmsse: {wrmsse}')
 
 class customIter:
-    """ tqdm has bugs in jupyter notebooks. This works just as well """
+    """ 
+    tqdm has bugs in jupyter notebooks (at least on my device). This works fine as well.
+    ONLY works for pd.Grouper instances
+    """
     def __init__(self, x: pd.Grouper):
         self.x: pd.Grouper = x
         
     def __iter__(self):
         i = 0
         tot_iterations = self.x.ngroups
+        print(f'{i} / {tot_iterations}', end='\r')
         for id, group in self.x:
             yield id, group
             i += 1
