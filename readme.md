@@ -6,6 +6,7 @@ This project investigates the feature importance in the m5-forecasting-uncertain
 - Store sample submission for uncertainty in ./data/m5-forecasting-uncertainty
 
 # Required Folders to Create
+- ./data/uncertainty/tables/
 - ./data/uncertainty/cv_template/
 - ./data/uncertainty/fold_1802/features/
 - ./data/uncertainty/fold_1802/final_submissions/
