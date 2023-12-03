@@ -291,6 +291,31 @@ def log_status(function):
         logger.info('calling')
         return function(*args, **kwargs)
     return wrapper
+
+def add_features(function):
+    def wrapper(*args, **kwargs):
+        # get params
+        if len(args) < 2:
+            raise Exception('Provide at least df, features')
+        df = args[0]
+        features = args[1]
+        
+        # check instances
+        if not isinstance(df, pd.DataFrame):
+            error_msg = f'df not of type pd.DataFrame, but {type(df)}'
+            raise Exception(error_msg)
+        if not isinstance(features, list):
+            error_msg = f'features not of type list, but {type(features)}'
+            raise Exception(error_msg)
+        
+        # compute features and add to list
+        old_columns = set(df.columns)
+        result = function(*args, **kwargs)
+        new_columns = set(df.columns)
+        features += list(new_columns - old_columns)
+
+        return result, features
+    return wrapper
         
 def ensemble_submissions(files: list):
     """ 
@@ -321,9 +346,6 @@ def parse_columns_to_string(c: list):
     return '_'.join(c)
 
 def prefixes_in_column(column, prefixes):
-    # s = 0
-    # for prefix in prefixes:
-    #     s += prefix_in_column(column, prefix)
     s = sum([prefix_in_column(column, prefix) for prefix in prefixes])
     return True if s>0 else False
 
