@@ -37,4 +37,4 @@ SUB_D_START_EVAL: int = 1914 + DAYS
 
 # the columns are always included after feature processing
 # because they are required in the training and submission format
-DROP_FEATURE_COLUMNS: list = ['id', 'item_id', 'dept_id', 'cat_id', 'store_id', 'd', 'sold']
+DROP_FEATURE_COLUMNS: list = ['id', 'item_id', 'dept_id', 'cat_id', 'store_id', 'state_id', 'd', 'd_int', 'sold']
