@@ -275,7 +275,7 @@ class customIter:
     def __iter__(self):
         i = 0
         tot_iterations = self.x.ngroups
-        print(f'{i} / {tot_iterations}', end='\r')
+        print(f'{i} / {tot_iterations}', end='\r') # example; 1 / 1000
         for id, group in self.x:
             yield id, group
             i += 1

@@ -24,8 +24,6 @@ AGG_LEVEL_COLUMNS = {
 QUANTILES = (0.005, 0.025, 0.165, 0.25, 0.5, 0.75, 0.835, 0.975, 0.995)
 QUANTILE_COLUMN = 'quantile'
 
-from sklearn.metrics import mean_pinball_loss
-
 def WSPL(df: pd.DataFrame, D_PRED: list = None):
     """
     Args:
@@ -131,5 +129,4 @@ def SPL(df_pred, df_true, df_true_hist: pd.DataFrame):
         )
         for q in QUANTILES
     ]
-    # all_quantiles_dict = dict(zip(QUANTILES, all_quantiles))
-    return np.mean(all_quantiles) / scale #, all_quantiles_dict
+    return np.mean(all_quantiles) / scale
