@@ -1,7 +1,5 @@
 import pandas as pd
 import numpy as np
-import pickle as pkl
-import time
 from utils.configure_logger import configure_logger
 configure_logger()
 import logging
@@ -48,13 +46,9 @@ def WRMSSE(df: pd.DataFrame, load_weights: bool = True):
     """
     
     D_PRED = [f"d_{i}" for i in range(1914, 1914 + 28)]
-    
-    # with open(PATH, "rb") as file:
-    #     idx_train, idx_predict, id, features, targets, d_list = pkl.load(file)
 
     logger.info('reading weights file')
     weights = pd.read_csv('../data/weights_validation.csv')
-    # rmsse_denominator = pd.read_csv('../data/rmsse_denominator.csv')
     
     agg_levels_columns = {
         "Level1": [], # no grouping, sum of all

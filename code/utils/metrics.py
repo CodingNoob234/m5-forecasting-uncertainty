@@ -54,9 +54,6 @@ def WSPL(df: pd.DataFrame, D_PRED: list = None):
             pred_index: pd.Index = df_agg['d'].isin(D_PRED)
             df_hist = df_agg[~pred_index].reset_index(drop=True)
             df_pred = df_agg[pred_index].reset_index(drop=True)
-            
-            # print(df_hist)
-            # print(df_pred)
 
             # rmsse list
             if agg_level == "Level1":
@@ -90,10 +87,7 @@ def WSPL(df: pd.DataFrame, D_PRED: list = None):
             
             # results to dataframe    
             df_rmsse = pd.DataFrame(rmsse_list, columns=['agg_column1', 'agg_column2', 'MSPL'])
-                
-            # print temp results
-            # logger.info(f'level: {agg_level} - RMSSE list: ' + str(rmsse_list))
-                    
+    
             # compute weighted average for rmsse
             level_weights = weights[weights['Level_id'] == agg_level]
             
