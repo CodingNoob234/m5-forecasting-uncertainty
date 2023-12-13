@@ -30,6 +30,10 @@ def merge_eval_sold_on_df(df: pd.DataFrame, df_eval: pd.DataFrame) -> pd.DataFra
     return df
 
 def sort_df_on_d(df: pd.DataFrame)->pd.DataFrame:
+    """ 
+    Sort df based on d (which has format d_{i}).
+    d is a string, and first has to be split
+    """
     df['d_int'] = df['d'].apply(lambda x: int(x.split('_')[1]))
     df = df.sort_values(by = 'd_int')
     del df['d_int']
