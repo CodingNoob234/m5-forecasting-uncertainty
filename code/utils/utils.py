@@ -195,12 +195,10 @@ def parse_columns_to_string(c: list):
         return f'{c[0]}_X'
     return '_'.join(c)
 
-def prefixes_in_column(column, prefixes):
-    s = sum([prefix_in_column(column, prefix) for prefix in prefixes])
+def prefixes_in_column(column:str, prefixes: list):
+    """ check if a column contains any of these prefixes """
+    s = sum([column.startswith(prefix) for prefix in prefixes])
     return True if s>0 else False
-
-def prefix_in_column(column, prefix):
-    return 1 if prefix in column else 0
 
 def store_results_as_json(results, file_path):
     # Save the dictionary as a JSON file
