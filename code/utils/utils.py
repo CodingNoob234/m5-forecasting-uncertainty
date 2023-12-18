@@ -196,18 +196,18 @@ def parse_columns_to_string(c: list):
     return '_'.join(c)
 
 def prefixes_in_column(column:str, prefixes: list):
-    """ check if a column contains any of these prefixes """
+    """ Check if a column contains any of the prefixes """
     s = sum([column.startswith(prefix) for prefix in prefixes])
     return True if s>0 else False
 
 def store_results_as_json(results, file_path):
-    # Save the dictionary as a JSON file
+    """ Store dictionary containing results under 'file_path' """
     import json
     with open(file_path, 'w') as json_file:
         json.dump(results, json_file) 
         
 def load_results_as_json(file_path):
-    # Save the dictionary as a JSON file
+    """ Load file under 'file_path' and parse to dictionary """
     import json
     with open(file_path, 'r') as json_file:
         json_loaded = json.load(json_file) 
