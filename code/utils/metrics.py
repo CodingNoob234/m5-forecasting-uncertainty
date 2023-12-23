@@ -127,35 +127,38 @@ def SPL(df_pred, df_true, df_true_hist: pd.DataFrame):
     return np.mean(all_quantiles) / scale
 
 ########################### DIEBOLD MARIANO ###########################
-def DM_test_pinball(pred1: pd.DataFrame, pred2: pd.DataFrame, true: pd.DataFrame, h):
-    df = pd.merge(
-        pred1,
-        pred2,
-        how = 'inner',
-        on = ['quantile', 'd', 'agg_column1', 'agg_column2']
-    )
-    df = pd.merge(
-        df,
-        true,
-        on = ['d', 'agg_column1', 'agg_column2'],
-        how = 'left'
-    )
-    
-    resid = df['sold'] - df['pred']
+def DM_test_pinball(df, h, p_crit: float = 0.05):
     quantile = df['quantile']
-    idx = resid >= 0
-    pinball_resid = resid
-    pinball_resid[idx] = resid[idx] * (1 - quantile[idx])
-    pinball_resid[~idx] = resid[~idx] * quantile[idx]
-    df['pinball_resid'] = pinball_resid
-    
-    df_qtile_avg = df.groupby(['d', 'agg_column1', 'agg_column2'])['pinball_resid']\
-        .mean().reset_index(drop=False)
+    #
+    resid_x = df['sold'] - df['pred_x']
+    idx = resid_x >= 0
+    pinball_resid_x = resid_x
+    pinball_resid_x[idx] = resid_x[idx] * (1 - quantile[idx])
+    pinball_resid_x[~idx] = resid_x[~idx] * quantile[~idx]
+    #
+    resid_y = df['sold'] - df['pred_y']
+    idx = resid_y >= 0
+    pinball_resid_y = resid_y
+    pinball_resid_y[idx] = resid_y[idx] * (1 - quantile[idx])
+    pinball_resid_y[~idx] = resid_y[~idx] * quantile[~idx]
+    #
+    df['pinball_resid'] = pinball_resid_x - pinball_resid_y
+    #
+    agg_dict = {
+        'revenue': 'last',
+        'pinball_resid': 'mean',
+        'Level': 'last'
+    }
+    df_qtile_avg = df.groupby(['d', 'id_merge']).agg(agg_dict).reset_index(drop=False)
+    # df_qtile_avg = df.groupby(['d', 'id_merge'])['pinball_resid']\
+    #     .mean().reset_index(drop=False)
 
     ids = []
     stats = []
     p_values = []
-    for (agg_column1, agg_column2), df_s in df_qtile_avg.groupby(['agg_column1', 'agg_column2']):
+    levels = []
+    h0_rejected = []
+    for id_merge, df_s in df_qtile_avg.groupby('id_merge'):
         
         # compute cov
         p_s = df_s['pinball_resid']
@@ -163,11 +166,12 @@ def DM_test_pinball(pred1: pd.DataFrame, pred2: pd.DataFrame, true: pd.DataFrame
         T = len(p_s)
         
         def auto_cov(resid, lag, mean):
+            resid = list(resid)
             cov = 0
             T = float(len(resid))
             for i in np.arange(0, len(resid)-lag):
-                autoCov += ((resid[i+lag])-mean)*(resid[i]-mean)
-            return (1/(T))*autoCov
+                cov += ((resid[i+lag])-mean)*(resid[i]-mean)
+            return (1/(T))*cov
         
         gamma = []
         for lag in range(h):
@@ -178,18 +182,22 @@ def DM_test_pinball(pred1: pd.DataFrame, pred2: pd.DataFrame, true: pd.DataFrame
         DM_stat=V_d**(-0.5)*mean
         harvey_adj=((T+1-2*h+h*(h-1)/T)/T)**(0.5)
         DM_stat = harvey_adj*DM_stat
-        
+
         # compute p_value
         from scipy.stats import t
         p_value = 2*t.cdf(-abs(DM_stat), df = T - 1)
         
         # store results
-        ids.append(agg_column1 + '_' + agg_column2)
+        levels.append(df_s['Level'].iloc[0])
+        ids.append(id_merge)
         stats.append(DM_stat)
-        p_values.append(p_value)
+        p_values.append(round(p_value,5))
+        h0_rejected.append(True if p_value < p_crit else (True if pd.isna(p_value) else False))
         
     return pd.DataFrame({
+        'level': levels,
         'ids': ids,
         'stats': stats,
-        'p_values': p_values
+        'p_values': p_values,
+        'h0_rejected': h0_rejected
     })
