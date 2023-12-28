@@ -33,8 +33,11 @@ PREDICTION_BASE_PATH: str = '../data/uncertainty/temp_submissions/'
 SUBMISSION_BASE_PATH: str = '../data/uncertainty/final_submissions/'
 
 SUB_D_START_VAL: int = 1914
-SUB_D_START_EVAL: int = 1914 + DAYS
+SUB_D_START_EVAL: int = SUB_D_START_VAL + DAYS
 
 # the columns are always included after feature processing
 # because they are required in the training and submission format
 DROP_FEATURE_COLUMNS: list = ['id', 'item_id', 'dept_id', 'cat_id', 'store_id', 'state_id', 'd', 'd_int', 'sold']
+
+# pixel density of stored figures
+DPI = 250

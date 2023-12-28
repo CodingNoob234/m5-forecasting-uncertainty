@@ -180,7 +180,7 @@ def DM_test_pinball(df, h, p_crit: float = 0.05):
         # compute stat
         V_d = (gamma[0] + 2*sum(gamma[1:]))/T
         DM_stat=V_d**(-0.5)*mean
-        harvey_adj=((T+1-2*h+h*(h-1)/T)/T)**(0.5)
+        harvey_adj=( ( T+1-2*h+h*(h-1)) / T ) ** 0.5
         DM_stat = harvey_adj*DM_stat
 
         # compute p_value
