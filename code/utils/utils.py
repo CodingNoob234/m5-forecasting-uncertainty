@@ -175,14 +175,15 @@ def ensemble_submissions(files: list):
 
 def ensemble_submissions_uncertainty(files: list):
     concat_df = pd.concat([pd.read_csv(file_name) for file_name in files])
+    
     # the second dot '.' is wrong, should be '_'. 
     # however, fixing this will break the current WSPL calculation
     # thus fix this another time, this is the correct line
     #
     # concat_df['id'] = concat_df['agg_column1'] + '_' + concat_df['agg_column2'] + '_' + concat_df['quantile'].astype(str) + '_' + concat_df['type_of']
     #
-
     concat_df['id'] = concat_df['agg_column1'] + '_' + concat_df['agg_column2'] + '.' + concat_df['quantile'].astype(str) + '_' + concat_df['type_of']
+    
     df_pred_avg = concat_df.groupby(['id', 'd'])['pred'].mean().reset_index()
     return df_pred_avg
 

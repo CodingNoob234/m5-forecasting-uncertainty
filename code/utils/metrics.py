@@ -83,7 +83,7 @@ def WSPL(df: pd.DataFrame, D_PRED: list = [f"d_{i}" for i in range(1914, 1914 + 
             
             # results to dataframe    
             df_rmsse = pd.DataFrame(rmsse_list, columns=['agg_column1', 'agg_column2', 'MSPL'])
-    
+
             # compute weighted average for rmsse
             level_weights = weights[weights['Level_id'] == agg_level]
             
@@ -100,7 +100,7 @@ def WSPL(df: pd.DataFrame, D_PRED: list = [f"d_{i}" for i in range(1914, 1914 + 
             
             # store results
             logger.info(f"{agg_level} - {level_wrmsse}")
-            level_wrmsse_list.append(level_wrmsse)
+            # level_wrmsse_list.append(level_wrmsse)
             level_wrmsse_dict[agg_level] = level_wrmsse
         
         except Exception as e:
