@@ -32,7 +32,9 @@ def WSPL(df: pd.DataFrame, D_PRED: list = [f"d_{i}" for i in range(1914, 1914 + 
     """
     # read weights
     logger.info('reading weights file')
-    weights: pd.DataFrame = pd.read_csv('../data/m5-forecasting-accuracy/weights_validation.csv')
+    # weights: pd.DataFrame = pd.read_csv('../data/m5-forecasting-accuracy/weights_validation.csv')
+    D_INT_START = D_PRED[0].split('_')[1]
+    weights: pd.DataFrame = pd.read_csv(f'../data/uncertainty/fold_{D_INT_START}/weights_validation.csv')
     weights.columns = ['Level_id', 'agg_column1', 'agg_column2', 'Weight']
 
     # aggregate specific level and make sure it is sorted well
@@ -42,7 +44,6 @@ def WSPL(df: pd.DataFrame, D_PRED: list = [f"d_{i}" for i in range(1914, 1914 + 
 
     # enter loop
     logger.info('entering loop ...')
-    # level_wrmsse_list: list = []
     level_wrmsse_dict: dict = {}
     for agg_level, df_agg in df.groupby('Level'):
         try:
