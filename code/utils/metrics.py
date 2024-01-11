@@ -101,7 +101,6 @@ def WSPL(df: pd.DataFrame, D_PRED: list = [f"d_{i}" for i in range(1914, 1914 + 
             
             # store results
             logger.info(f"{agg_level} - {level_wrmsse}")
-            # level_wrmsse_list.append(level_wrmsse)
             level_wrmsse_dict[agg_level] = level_wrmsse
         
         except Exception as e:
@@ -126,79 +125,3 @@ def SPL(df_pred, df_true, df_true_hist: pd.DataFrame):
         for q in QUANTILES
     ]
     return np.mean(all_quantiles) / scale
-
-########################### DIEBOLD MARIANO ###########################
-def DM_test_pinball(df, h, p_crit: float = 0.05):
-    quantile = df['quantile']
-    #
-    resid_x = df['sold'] - df['pred_x']
-    idx = resid_x >= 0
-    pinball_resid_x = resid_x
-    pinball_resid_x[idx] = resid_x[idx] * (1 - quantile[idx])
-    pinball_resid_x[~idx] = resid_x[~idx] * quantile[~idx]
-    #
-    resid_y = df['sold'] - df['pred_y']
-    idx = resid_y >= 0
-    pinball_resid_y = resid_y
-    pinball_resid_y[idx] = resid_y[idx] * (1 - quantile[idx])
-    pinball_resid_y[~idx] = resid_y[~idx] * quantile[~idx]
-    #
-    df['pinball_resid'] = pinball_resid_x - pinball_resid_y
-    #
-    agg_dict = {
-        'revenue': 'last',
-        'pinball_resid': 'mean',
-        'Level': 'last'
-    }
-    df_qtile_avg = df.groupby(['d', 'id_merge']).agg(agg_dict).reset_index(drop=False)
-    # df_qtile_avg = df.groupby(['d', 'id_merge'])['pinball_resid']\
-    #     .mean().reset_index(drop=False)
-
-    ids = []
-    stats = []
-    p_values = []
-    levels = []
-    h0_rejected = []
-    for id_merge, df_s in df_qtile_avg.groupby('id_merge'):
-        
-        # compute cov
-        p_s = df_s['pinball_resid']
-        mean = p_s.mean()
-        T = len(p_s)
-        
-        def auto_cov(resid, lag, mean):
-            resid = list(resid)
-            cov = 0
-            T = float(len(resid))
-            for i in np.arange(0, len(resid)-lag):
-                cov += ((resid[i+lag])-mean)*(resid[i]-mean)
-            return (1/(T))*cov
-        
-        gamma = []
-        for lag in range(h):
-            gamma.append(auto_cov(p_s, lag, mean))
-        
-        # compute stat
-        V_d = (gamma[0] + 2*sum(gamma[1:]))/T
-        DM_stat=V_d**(-0.5)*mean
-        harvey_adj=( ( T+1-2*h+h*(h-1)) / T ) ** 0.5
-        DM_stat = harvey_adj*DM_stat
-
-        # compute p_value
-        from scipy.stats import t
-        p_value = 2*t.cdf(-abs(DM_stat), df = T - 1)
-        
-        # store results
-        levels.append(df_s['Level'].iloc[0])
-        ids.append(id_merge)
-        stats.append(DM_stat)
-        p_values.append(round(p_value,5))
-        h0_rejected.append(True if p_value < p_crit else (True if pd.isna(p_value) else False))
-        
-    return pd.DataFrame({
-        'level': levels,
-        'ids': ids,
-        'stats': stats,
-        'p_values': p_values,
-        'h0_rejected': h0_rejected
-    })
